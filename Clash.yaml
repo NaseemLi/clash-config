@@ -15,13 +15,6 @@ keep-alive-idle: 600
 # 保持连接间隔时间 (秒)
 keep-alive-interval: 15
 
-# 面板
-#external-controller: 0.0.0.0:9090
-#secret: ""
-#external-ui: ui
-#external-ui-name: zashboard
-#external-ui-url: "https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
-
 # 配置文件设置
 profile:
   # 存储选择的节点
@@ -31,7 +24,6 @@ profile:
 
 tun:
   enable: true
-  # system/gvisor/mixed
   stack: mixed
   dns-hijack: ["any:53", "tcp://any:53"]
   auto-route: true
@@ -43,26 +35,51 @@ tun:
 
 dns:
   enable: true
-  cache-algorithm: arc
-  #裸核面板监听地址 0.0.0.0:1053
   listen: 127.0.0.1:1053
   ipv6: false
   respect-rules: true
+  use-hosts: true
+  cache-algorithm: arc
+  cache-size: 4096
+
   enhanced-mode: fake-ip
-  fake-ip-range: 28.0.0.1/8
+  fake-ip-range: 198.18.0.1/16
   fake-ip-filter-mode: blacklist
+  fake-ip-filter:
+    - "*.lan"
+    - "*.local"
+    - "localhost"
+    - "localhost.*"
+    - "time.*.com"
+    - "time.*.gov"
+    - "pool.ntp.org"
+    - "rule-set:fakeipfilter_domain"
+
   default-nameserver:
-    - https://223.5.5.5/dns-query
-    - https://119.29.29.29/dns-query
-  proxy-server-nameserver:
-    - https://8.8.8.8/dns-query
-    - https://1.1.1.1/dns-query
+    - 223.5.5.5
+    - 119.29.29.29
+
   direct-nameserver:
     - https://223.5.5.5/dns-query
+    - https://doh.pub/dns-query
+
+  proxy-server-nameserver:
+    - https://223.5.5.5/dns-query
+    - https://doh.pub/dns-query
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+
+  nameserver-policy:
+    "geosite:cn,private":
+      - https://223.5.5.5/dns-query
+      - https://doh.pub/dns-query
+    "geosite:geolocation-!cn":
+      - https://1.1.1.1/dns-query#🧭 DNS 出口
+      - https://8.8.8.8/dns-query#🧭 DNS 出口
+
   nameserver:
-    - https://8.8.8.8/dns-query#RULES&ecs=223.5.5.0/24
-  fake-ip-filter:
-    - "rule-set:fakeipfilter_domain"
+    - https://1.1.1.1/dns-query#🧭 DNS 出口
+    - https://8.8.8.8/dns-query#🧭 DNS 出口
 
 # 代理节点
 proxies:
@@ -72,21 +89,21 @@ proxies:
   - name: 拒绝
     type: reject
 
-  - name: Proxy1
+  - name: AAA
 
-  - name: Proxy2
+  - name: BBB
 
-# 代理提供者 (订阅源)
-# proxy-providers:
-#   all-proxies:
-#     type: http
-#     url: "https://example.com/your-subscription-url"
-#     interval: 3600
-#     path: ./providers/all-proxies.yaml
-#     health-check:
-#       enable: true
-#       interval: 600
-#       url: http://www.gstatic.com/generate_204
+proxy-providers:
+  XXX:
+    type: http
+    url: "https://example.com/providers/XXX.yaml"
+    interval: 3600
+    path: ./providers/XXX.yaml
+    proxy: DIRECT
+    health-check:
+      enable: true
+      interval: 600
+      url: https://cp.cloudflare.com/generate_204
 
 proxy-groups:
   - name: 🚀 节点选择
@@ -99,9 +116,19 @@ proxy-groups:
   - name: ⚡ 自动选择
     type: url-test
     proxies:
-      - Proxy1
-      - Proxy2
+      - AAA
+      - BBB
     interval: 300
+
+  - name: 🧭 DNS 出口
+    type: select
+    proxies:
+      - ⚡ 自动选择
+
+  - name: 🌍 自选地区
+    type: select
+    use:
+      - XXX
 
   - name: 🛑 广告拦截
     type: select
@@ -239,6 +266,15 @@ proxy-groups:
       - 直连
       - 拒绝
 
+  - name: 💰 加密货币
+    type: select
+    proxies:
+      - 🌍 自选地区
+      - ⚡ 自动选择
+      - 🚀 节点选择
+      - 直连
+      - 拒绝
+
   - name: ☁️ 云服务
     type: select
     proxies:
@@ -274,7 +310,7 @@ rules:
   - RULE-SET,cn,🔒 国内服务,no-resolve
   - RULE-SET,geolocation-cn,🔒 国内服务
 
-  # 国外服务（域名优先级最高）
+  # 国外服务
   - RULE-SET,category-ai-!cn,💬 AI 服务
   - RULE-SET,github,🐱 Github
   - RULE-SET,telegram,📲 电报消息,no-resolve
@@ -293,6 +329,7 @@ rules:
   - RULE-SET,azure,☁️ 云服务
   - RULE-SET,steam,🎮 游戏平台
   - RULE-SET,paypal,💰 金融服务
+  - RULE-SET,crypto,💰 加密货币
   - RULE-SET,microsoft,Ⓜ️ 微软服务
   - RULE-SET,google,🔍 谷歌服务
 
@@ -327,7 +364,9 @@ rule-providers:
   HTTPDNS:
     type: http
     behavior: classical
-    url: "https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/HTTPDNS.yaml"
+    url:
+      "https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/HTTPD\
+      NS.yaml"
     path: ./ruleset/HTTPDNS.yaml
     interval: 86400
   category-ai-!cn:
@@ -637,4 +676,11 @@ rule-providers:
     behavior: ipcidr
     url: https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geoip/telegram.mrs
     path: ./ruleset/telegram.mrs
+    interval: 86400
+  crypto:
+    type: http
+    format: mrs
+    behavior: domain
+    url: https://gh-proxy.com/https://github.com/MetaCubeX/meta-rules-dat/raw/refs/heads/meta/geo/geosite/category-cryptocurrency.mrs
+    path: ./ruleset/category-cryptocurrency.mrs
     interval: 86400
