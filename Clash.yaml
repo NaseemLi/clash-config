@@ -379,54 +379,43 @@ proxy-groups:
 # ============================================================
 
 rules:
-  # 私有网络与特殊 DNS
+  # 私有 & 拦截
   - RULE-SET,private,🏠 私有网络,no-resolve
+  - RULE-SET,category-ads-all,🛑 广告拦截
   - RULE-SET,HTTPDNS,⛔ DNS 绕过
 
-  # 广告拦截
-  - RULE-SET,category-ads-all,🛑 广告拦截
-
-  # 国内服务
+  # 国内应用
   - RULE-SET,bilibili,📺 哔哩哔哩
+  - RULE-SET,cn,🔒 国内服务,no-resolve
   - RULE-SET,geolocation-cn,🔒 国内服务
 
-  # AI / 开发 / 常见海外服务
+  # 国外服务
   - RULE-SET,category-ai-!cn,💬 AI 服务
-  - RULE-SET,github,🐱 GitHub
-  - RULE-SET,youtube,📹 油管视频
-  - RULE-SET,google,🔍 谷歌服务
-  - RULE-SET,microsoft,Ⓜ️ 微软服务
-  - RULE-SET,apple,🍏 苹果服务
-
-  # 流媒体
-  - RULE-SET,netflix,🎬 流媒体
-  - RULE-SET,disney,🎬 流媒体
-  - RULE-SET,amazon,🎬 流媒体
-
-  # 社交媒体
+  - RULE-SET,github,🐱 Github
+  - RULE-SET,telegram,📲 电报消息,no-resolve
   - RULE-SET,facebook,🌐 社交媒体
   - RULE-SET,instagram,🌐 社交媒体
   - RULE-SET,twitter,🌐 社交媒体
   - RULE-SET,tiktok,🌐 社交媒体
   - RULE-SET,linkedin,🌐 社交媒体
-
-  # 游戏 / 金融 / 云服务
-  - RULE-SET,steam,🎮 游戏平台
-  - RULE-SET,paypal,💰 金融服务
-  - RULE-SET,crypto,💰 加密货币
+  - RULE-SET,youtube,📹 油管视频
+  - RULE-SET,apple,🍏 苹果服务
+  - RULE-SET,netflix,🎬 流媒体
+  - RULE-SET,disney,🎬 流媒体
+  - RULE-SET,amazon,🎬 流媒体
   - RULE-SET,dropbox,☁️ 云服务
   - RULE-SET,aws,☁️ 云服务
   - RULE-SET,azure,☁️ 云服务
+  - RULE-SET,steam,🎮 游戏平台
+  - RULE-SET,paypal,💰 金融服务
+  - RULE-SET,microsoft,Ⓜ️ 微软服务
+  - RULE-SET,google,🔍 谷歌服务
 
-  # IP 类规则
-  - RULE-SET,telegram,📲 电报消息,no-resolve
-  - RULE-SET,cn,🔒 国内服务,no-resolve
-  - GEOIP,CN,🔒 国内服务,no-resolve
-
-  # 非中国域名
+  # 国家级兜底
+  - GEOIP,CN,🔒 国内服务
   - RULE-SET,geolocation-!cn,🌐 非中国
 
-  # 兜底
+  # 最终兜底
   - MATCH,🐟 漏网之鱼
 
 # ============================================================
